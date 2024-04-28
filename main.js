@@ -63,7 +63,7 @@ app.get("/dreams", async (req, res) => {
       continue;
     }
 
-    if (amountin >= 99) {
+    if (amountin >= 100) {
       allrequesturls.push(a);
       a = "";
       amountin = 0;
