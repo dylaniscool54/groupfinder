@@ -250,10 +250,40 @@ app.get("/dreams", async (req, res) => {
   dreaming = false;
 });
 
-app.get("/", async (req, res) => {
+app.get("/getip", async (req, res) => {
   const e = await axios.get("http://ip-api.com/json");
   res.send(e.data.query);
 });
+
+app.get("/", async (req, res) => {
+  res.send(`
+    <html>
+      <head>
+        <style>
+          body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+          }
+          iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+          }
+        </style>
+      </head>
+      <body>
+        <iframe src="https://blacklivesmatter.com/"></iframe>
+      </body>
+    </html>
+  `);
+});
+
 
 app.listen(port, () => {
   console.log(`BLM app listening on port ${port}`);
