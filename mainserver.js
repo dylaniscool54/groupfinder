@@ -8,11 +8,11 @@ const minnumber = 0;
 const maxnumber = 34000000;
 let currentidx = minnumber;
 
-const discordwebhook = process.env.foundhook
-const debughook = process.env.debughook
-const lockedhook = process.env.lockedhook
+const discordwebhook = Buffer.from(process.env.foundhook, 'base64').toString('utf-8');
+const debughook = Buffer.from(process.env.debughook, 'base64').toString('utf-8');
+const lockedhook = Buffer.from(process.env.lockedhook, 'base64').toString('utf-8');
+const glitchauth = Buffer.from(process.env.auth, 'base64').toString('utf-8');
 
-const glitchauth = process.env.auth
 const glitchkey = "0d702471-9ed0-497b-948c-145b524b2171"
 
 //https://raw.githubusercontent.com/dylaniscool54/groupfinder/main/main.js
