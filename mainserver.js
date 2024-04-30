@@ -16,42 +16,7 @@ const glitchauth = Buffer.from(process.env.auth, 'base64').toString('utf-8');
 const glitchkey = "0d702471-9ed0-497b-948c-145b524b2171"
 
 //https://raw.githubusercontent.com/dylaniscool54/groupfinder/main/main.js
-let nodes = [
-  "butternut-skinny-bee",
-  "blush-seasoned-chipmunk",
-  "therapeutic-boggy-radish",
-  "better-speckle-collard",
-  "plausible-past-blizzard",
-  "glow-axiomatic-playground",
-  "sneaky-adaptive-acoustic",
-  "rustic-stripe-quality",
-  "safe-pale-mandrill",
-  "ionized-gravel-comet",
-  "hissing-goofy-empress",
-  "spotty-branch-part",
-  "scintillating-unexpected-saturday",
-  "shadowed-abaft-buttercup",
-  "tundra-linen-parakeet",
-  "juvenile-zesty-epoch",
-  "glimmer-modern-ceres",
-  "gregarious-level-spell",
-  "intelligent-fern-notebook",
-  "excited-band-trawler",
-  "lace-glass-grasshopper",
-  "daisy-innate-caboc",
-  "zest-scratch-zoo",
-  "mahogany-noiseless-scene",
-  "tasty-dazzling-saturnalia",
-  "sunny-buttoned-year",
-  "hail-incandescent-vinyl",
-  "brainy-frost-layer",
-  "versed-vivid-hall",
-  "wheat-winter-cloak",
-  "ambitious-alert-daisy",
-];
-
-//https://glitch.com/edit/#!/remix/ambitious-alert-daisy
-
+let nodes = [];
 
 const blacklist = [ //roblox group id's
   1
