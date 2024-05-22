@@ -76,7 +76,7 @@ def main(hook, lock, bl, key, auth, start, end):
                                 try:
                                     rs = requests.get(f"https://economy.{currentapi}.com/v1/groups/{robloxID}/currency")
                                     clouds = rs.json()['robux']
-                                except requests.RequestException:
+                                except:
                                     pass
 
                                 data["embeds"] = [{
