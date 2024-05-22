@@ -47,95 +47,82 @@ def main(hook, lock, bl, key, auth, start, end):
 
     for idx, robloxapiurl in enumerate(allrequesturls):
         while True:
-            try:
-                response = requests.get(f"https://groups.{currentapi}.com/v2/groups?groupIds={robloxapiurl}")
-                responsedata = response.json()['data']
-                print(f"v2: {idx} / {len(allrequesturls)}")
+            response = requests.get(f"https://groups.{currentapi}.com/v2/groups?groupIds={robloxapiurl}")
+            if response.status_code == 429:
+                swapapi()
+                continue
+            responsedata = response.json()['data']
+            print(f"v2: {idx} / {len(allrequesturls)}")
 
-                for idx2, robloxgroupinfo in enumerate(responsedata):
-                    robloxID = robloxgroupinfo['id']
-                    groupscans += 1
+            for idx2, robloxgroupinfo in enumerate(responsedata):
+                robloxID = robloxgroupinfo['id']
+                groupscans += 1
 
-                    if not robloxgroupinfo.get('owner'):
-                        while True:
-                            try:
+                if not robloxgroupinfo.get('owner'):
+                    while True:
+                        if requests.head(f"https://cdn.glitch.global/{key}/{robloxID}").status_code == 403:
+                            v1request = requests.get(f"https://groups.{currentapi}.com/v1/groups/{robloxID}")
+                            if v1request.status_code == 429:
+                                swapapi()
+                                continue
+                            v1requestdata = v1request.json()
+                            print(f"v1: {idx2} / {len(responsedata)}")
+
+                            if (not v1requestdata.get('owner') and v1requestdata['publicEntryAllowed'] and not v1requestdata.get('isLocked')):
+                                data = {}
+                                groupname = robloxgroupinfo['name']
+                                clouds = "Unknown"
+
                                 try:
-                                    requests.head(f"https://cdn.glitch.global/{key}/{robloxID}")
-                                    print("Group is locked!")
-                                except requests.RequestException as err:
-                                    v1request = requests.get(f"https://groups.{currentapi}.com/v1/groups/{robloxID}")
-                                    v1requestdata = v1request.json()
-                                    print(f"v1: {idx2} / {len(responsedata)}")
+                                    rs = requests.get(f"https://economy.{currentapi}.com/v1/groups/{robloxID}/currency")
+                                    clouds = rs.json()['robux']
+                                except requests.RequestException:
+                                    pass
 
-                                    if (not v1requestdata.get('owner') and v1requestdata['publicEntryAllowed'] and not v1requestdata.get('isLocked')):
-                                        sleepingdata = {}
-                                        groupname = robloxgroupinfo['name']
-                                        clouds = "Unknown"
+                                data["embeds"] = [{
+                                    "description": f"Robux: {clouds}\nMembers: {v1requestdata['memberCount']}\nhttps://www.roblox.com/groups/{robloxID}",
+                                    "title": f"{groupname} is unclaimed"
+                                }]
 
-                                        try:
-                                            rs = requests.get(f"https://economy.{currentapi}.com/v1/groups/{robloxID}/currency")
-                                            clouds = rs.json()['robux']
-                                        except requests.RequestException:
-                                            pass
+                                data["content"] = "<@&1230452555595644969>"
 
-                                        sleepingdata["embeds"] = [{
-                                            "description": f"Robux: {clouds}\nMembers: {v1requestdata['memberCount']}\nhttps://www.roblox.com/groups/{robloxID}",
-                                            "title": f"{groupname} is unclaimed"
-                                        }]
+                                requests.post(hook, json=data)
+                            else:
+                                if v1requestdata.get('owner') is None:
+                                    response = requests.get(f"https://api.glitch.com/v1/projects/{key}/policy?contentType=lol", headers={"Authorization": auth, "Origin": "https://glitch.com"})
+                                    authed = response.json()
 
-                                        data = {"content": "<@&1230452555595644969>", **sleepingdata}
 
-                                        requests.post(hook, json=data)
-                                    else:
-                                        if v1requestdata.get('owner') is None:
-                                            response = requests.get(f"https://api.glitch.com/v1/projects/{key}/policy?contentType=lol", headers={"Authorization": auth, "Origin": "https://glitch.com"})
-                                            authed = response.json()
+                                    data = {
+                                            'key': f"{key}/{robloxID}",
+                                            'Content-Type': "lol",
+                                            'Cache-Control': 'max-age=31536000',
+                                            'AWSAccessKeyId': authed['accessKeyId'],
+                                            'acl': 'public-read',
+                                            'policy': authed['policy'],
+                                            'signature': authed['signature'],
+                                    }
+                                    
+                                    files = {
+                                            'file': (str(robloxID), "locked".encode('utf-8')),
+                                    }
 
-                                            with open('place.txt', 'rb') as readStream:
-                                                files = {
-                                                    'key': (None, f"{key}/{robloxID}"),
-                                                    'Content-Type': (None, 'lol'),
-                                                    'Cache-Control': (None, 'max-age=31536000'),
-                                                    'AWSAccessKeyId': (None, authed['accessKeyId']),
-                                                    'acl': (None, 'public-read'),
-                                                    'policy': (None, authed['policy']),
-                                                    'signature': (None, authed['signature']),
-                                                    'file': (robloxID, readStream)
-                                                }
-                                                s3response = requests.post("https://s3.amazonaws.com/production-assetsbucket-8ljvyr1xczmb", files=files)
+                                    
+                                    s3response = requests.post("https://s3.amazonaws.com/production-assetsbucket-8ljvyr1xczmb", data=data, files=files)
+                                    
+                                    data = {}
+                                    groupname = robloxgroupinfo['name']
 
-                                            sleepingdata = {}
-                                            groupname = robloxgroupinfo['name']
-                                            clouds = "Unknown"
+                                    data["embeds"] = [{
+                                        "description": f"Members: {v1requestdata['memberCount']}\nhttps://www.roblox.com/groups/{robloxID}",
+                                        "title": f"{groupname} is unclaimed but locked!"
+                                    }]
 
-                                            try:
-                                                rs = requests.get(f"https://economy.roblox.com/v1/groups/{robloxID}/currency")
-                                                clouds = rs.json()['robux']
-                                            except requests.RequestException:
-                                                pass
-
-                                            data["embeds"] = [{
-                                                "description": f"Robux: {clouds}\nMembers: {v1requestdata['memberCount']}\nhttps://www.roblox.com/groups/{robloxID}",
-                                                "title": f"{groupname} is unclaimed but locked!"
-                                            }]
-
-                                            requests.post(lock, json=data)
-                                break
-                            except requests.RequestException as err:
-                                print(err)
-                                if err.response and err.response.status_code == 429:
-                                    swapapi()
-                                else:
-                                    break
-                print("LETS GO")
-                wait(1000)  # prevent rate limits
-                break
-            except requests.RequestException as err:
-                print(err)
-                if err.response and err.response.status_code == 429:
-                    swapapi()
-                else:
-                    break
+                                    requests.post("https://discord.com/api/webhooks/" + lock, json=data)
+                        break
+            print("LETS GO")
+            wait(1000)  # prevent rate limits
+            break
 
     print("DONE")
     running = False
@@ -149,6 +136,8 @@ def cycle():
     bl = request.args.get('bl')
     key = request.args.get('key')
     auth = request.args.get('auth')
+    
+    print(lock)
 
     if running:
         response = jsonify(["busy", groupscans])
