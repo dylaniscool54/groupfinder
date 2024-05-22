@@ -84,7 +84,7 @@ def main(hook, lock, bl, key, auth, start, end):
                                     "title": f"{groupname} is unclaimed"
                                 }]
 
-                                data["content"] = "<@&1230452555595644969>"
+                                data["content"] = "<@&1242748573632954459>"
 
                                 requests.post(hook, json=data)
                             else:
