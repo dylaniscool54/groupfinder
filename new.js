@@ -28,8 +28,8 @@ async function swapapi() {
 let groupscans = 0
 
 app.get("/cycle", async (req, res) => {
-  const fallingasleep = req.query.fallingasleep;
-  const fallingasleeplocked = req.query.fallingasleeplocked;
+  const hook = req.query.hook;
+  const lock = req.query.lock;
   const bl = req.query.bl;
   const key = req.query.key;
   const auth = req.query.auth;
@@ -143,9 +143,9 @@ app.get("/cycle", async (req, res) => {
                       },
                     ];
 
-                    sleepingdata["content"] = "<@&1230452555595644969>";
+                    data["content"] = "<@&1230452555595644969>";
 
-                    await axios.post(fallingasleep, sleepingdata);
+                    await axios.post(hook, data);
                   } else {
                     if (v1requestdata.owner == null) {
                       let response = await axios.get(
@@ -197,7 +197,7 @@ app.get("/cycle", async (req, res) => {
                         clouds = rs.data.robux;
                       } catch (err) {}
 
-                      sleepingdata["embeds"] = [
+                      data["embeds"] = [
                         {
                           description:
                             "Robux: " +
@@ -211,7 +211,7 @@ app.get("/cycle", async (req, res) => {
                         },
                       ];
 
-                      await axios.post(fallingasleeplocked, sleepingdata);
+                      await axios.post(lock, data);
                     }
                   }
                 }
