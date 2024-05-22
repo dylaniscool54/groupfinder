@@ -5,30 +5,29 @@ const fs = require("fs");
 const app = express();
 const port = 3000;
 
-function dreamtime(ms) {
+function wait(ms) {
   return new Promise((resolve) => {
     setTimeout(resolve, ms);
   });
 }
 
-let dreaming = false;
+let running = false;
 
 let currentapi = "roblox"
 
-async function ratelimit() {
-  console.log("rate limit! waiting 30 seconds");
+async function swapapi() {
   if (currentapi == "roblox") {
     currentapi = 'roproxy'
   } else {
     currentapi = 'roblox'
-    await dreamtime(1000);
+    await wait(1000);
   }
   
 }
 
 let groupscans = 0
 
-app.get("/dreams", async (req, res) => {
+app.get("/cycle", async (req, res) => {
   const fallingasleep = req.query.fallingasleep;
   const fallingasleeplocked = req.query.fallingasleeplocked;
   const bl = req.query.bl;
@@ -37,14 +36,14 @@ app.get("/dreams", async (req, res) => {
 
   const blacklistArray = bl.split(",").map((item) => item.trim());
 
-  if (dreaming) {
+  if (running) {
     res.json(["busy", groupscans]);
     groupscans = 0
     return
   }
   const start = req.query.a;
   const end = req.query.b;
-  dreaming = true;
+  running = true;
 
   console.log("start: " + start);
   console.log("end: " + end);
@@ -92,7 +91,7 @@ app.get("/dreams", async (req, res) => {
           
           groupscans += 1
 
-          if (robloxgroupinfo.owner == null) {
+          if (!robloxgroupinfo.owner) {
             while (true) {
               try {
                 try {
@@ -104,7 +103,7 @@ app.get("/dreams", async (req, res) => {
                   );
                   console.log("Group is locked!")
                 } catch (err) {
-                  //not marked as locked
+                  
                   const v1request = await axios.get(
                     "https://groups."+currentapi+".com/v1/groups/" + robloxID
                   );
@@ -112,8 +111,8 @@ app.get("/dreams", async (req, res) => {
                   const v1requestdata = v1request.data;
 
                   if (
-                    v1requestdata.owner == null &&
-                    v1requestdata.publicEntryAllowed == true &&
+                    !v1requestdata.owner &&
+                    v1requestdata.publicEntryAllowed &&
                     !v1requestdata.isLocked
                   ) {
                     let sleepingdata = {};
@@ -222,7 +221,7 @@ app.get("/dreams", async (req, res) => {
                 console.log(err.message);
                 
                 if (err.response && err.response.status == 429) {
-                  await ratelimit();
+                  await swapapi();
                 } else {
                   break;
                 }
@@ -231,14 +230,14 @@ app.get("/dreams", async (req, res) => {
           }
         }
 
-        console.log("Success");
-        await dreamtime(1000); //prevent rate limits
+        console.log("LETS GO");
+        await wait(1000); //prevent rate limits
         break;
       } catch (err) {
         console.log(err.message);
         
         if (err.response && err.response.status == 429) {
-          await ratelimit();
+          await swapapi();
         } else {
           break;
         }
@@ -246,8 +245,8 @@ app.get("/dreams", async (req, res) => {
     }
   }
 
-  console.log("Dreamed");
-  dreaming = false;
+  console.log("DONE");
+  running = false;
 });
 
 app.get("/getip", async (req, res) => {
@@ -256,35 +255,10 @@ app.get("/getip", async (req, res) => {
 });
 
 app.get("/", async (req, res) => {
-  res.send(`
-    <html>
-      <head>
-        <style>
-          body, html {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-          }
-          iframe {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            border: none;
-          }
-        </style>
-      </head>
-      <body>
-        <iframe src="https://blacklivesmatter.com/"></iframe>
-      </body>
-    </html>
-  `);
+  res.end()
 });
 
 
 app.listen(port, () => {
-  console.log(`BLM app listening on port ${port}`);
+  console.log(`app listening on port ${port}`);
 });
