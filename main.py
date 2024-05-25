@@ -21,7 +21,7 @@ def swapapi():
         currentapi = 'roblox'
     wait(1000)
 
-def main(hook, lock, bl, key, auth, start, end, freehook, cookie):
+def main(hook, lock, bl, key, auth, start, end, freehook, cookie, rbxhook):
     global running, groupscans
     blacklistArray = [item.strip() for item in bl.split(',')]
 
@@ -81,9 +81,11 @@ def main(hook, lock, bl, key, auth, start, end, freehook, cookie):
 
                                 touse = freehook
 
-                                if clouds == "Unknown" or clouds > 0:
+                                if clouds != "Unknown" and clouds > 0:
+                                    touse = rbxhook
+                               if clouds == "Unknown":
                                     touse = hook
-
+                                   
                                 data["embeds"] = [{
                                     "description": f"Robux: {clouds}\nMembers: {v1requestdata['memberCount']}\nhttps://www.roblox.com/groups/{robloxID}",
                                     "title": f"{groupname} is unclaimed"
@@ -143,7 +145,7 @@ def cycle():
     auth = request.args.get('auth')
     freehook = request.args.get('free')
     cookie = request.args.get('cookie')
-    
+    rbx = request.args.get('rbx')
     print(lock)
 
     if running:
@@ -161,7 +163,7 @@ def cycle():
     response = jsonify(["ready", groupscans])
     groupscans = 0
 
-    threading.Thread(target=main, args=(hook, lock, bl, key, auth, start, end,freehook,cookie,)).start()
+    threading.Thread(target=main, args=(hook, lock, bl, key, auth, start, end,freehook,cookie,rbx,)).start()
     return response
 
 @app.route('/getip', methods=['GET'])
