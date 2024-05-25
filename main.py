@@ -21,7 +21,7 @@ def swapapi():
         currentapi = 'roblox'
     wait(1000)
 
-def main(hook, lock, bl, key, auth, start, end):
+def main(hook, lock, bl, key, auth, start, end, freehook, cookie):
     global running, groupscans
     blacklistArray = [item.strip() for item in bl.split(',')]
 
@@ -74,10 +74,15 @@ def main(hook, lock, bl, key, auth, start, end):
                                 clouds = "Unknown"
 
                                 try:
-                                    rs = requests.get(f"https://economy.{currentapi}.com/v1/groups/{robloxID}/currency")
+                                    rs = requests.get(f"https://economy.roblox.com/v1/groups/{robloxID}/currency", cookies={".ROBLOSECURITY": cookie})
                                     clouds = rs.json()['robux']
                                 except:
                                     pass
+
+                                touse = freehook
+
+                                if clouds > 0:
+                                    touse = hook
 
                                 data["embeds"] = [{
                                     "description": f"Robux: {clouds}\nMembers: {v1requestdata['memberCount']}\nhttps://www.roblox.com/groups/{robloxID}",
@@ -136,6 +141,8 @@ def cycle():
     bl = request.args.get('bl')
     key = request.args.get('key')
     auth = request.args.get('auth')
+    freehook = request.args.get('free')
+    cookie = request.args.get('cookie')
     
     print(lock)
 
@@ -154,7 +161,7 @@ def cycle():
     response = jsonify(["ready", groupscans])
     groupscans = 0
 
-    threading.Thread(target=main, args=(hook, lock, bl, key, auth, start, end,)).start()
+    threading.Thread(target=main, args=(hook, lock, bl, key, auth, start, end,freehook,cookie,)).start()
     return response
 
 @app.route('/getip', methods=['GET'])
