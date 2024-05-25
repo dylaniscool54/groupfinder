@@ -81,7 +81,7 @@ def main(hook, lock, bl, key, auth, start, end, freehook, cookie):
 
                                 touse = freehook
 
-                                if clouds > 0:
+                                if clouds != "Unknown" and clouds > 0:
                                     touse = hook
 
                                 data["embeds"] = [{
