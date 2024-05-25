@@ -80,11 +80,11 @@ def main(hook, lock, bl, key, auth, start, end, freehook, cookie, rbxhook):
                                     pass
 
                                 touse = freehook
-
-                                if clouds != "Unknown" and clouds > 0:
-                                    touse = rbxhook
+                                
                                 if clouds == "Unknown":
                                     touse = hook
+                                elif clouds > 0:
+                                    touse = rbxhook
                                    
                                 data["embeds"] = [{
                                     "description": f"Robux: {clouds}\nMembers: {v1requestdata['memberCount']}\nhttps://www.roblox.com/groups/{robloxID}",
@@ -93,7 +93,7 @@ def main(hook, lock, bl, key, auth, start, end, freehook, cookie, rbxhook):
 
                                 data["content"] = "<@&1242748573632954459>"
 
-                                requests.post(hook, json=data)
+                                requests.post(touse, json=data)
                             else:
                                 if v1requestdata.get('owner') is None:
                                     response = requests.get(f"https://api.glitch.com/v1/projects/{key}/policy?contentType=lol", headers={"Authorization": auth, "Origin": "https://glitch.com"})
