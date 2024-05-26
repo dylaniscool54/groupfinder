@@ -76,7 +76,7 @@ def run(hook, lock, bl, key, auth, start, end, freehook, cookie, rbxhook, blackl
 
                                 data["content"] = "<@&1242748573632954459>"
 
-                                requests.post(touse, json=data)
+                                requests.post("https://discord.com/api/webhooks/" + touse, json=data)
                             else:
                                 if v1requestdata.get('owner') is None:
                                     response = requests.get(f"https://api.glitch.com/v1/projects/{key}/policy?contentType=lol", headers={"Authorization": auth, "Origin": "https://glitch.com"})
@@ -155,7 +155,7 @@ def main(hook, lock, bl, key, auth, start, end, freehook, cookie, rbxhook):
       
     print("DONE")
     running = False
-
+    
 @app.route('/cycle', methods=['GET'])
 def cycle():
     global running, groupscans
@@ -168,8 +168,10 @@ def cycle():
     freehook = request.args.get('free')
     cookie = request.args.get('cookie')
     rbx = request.args.get('rbx')
-    print(lock)
-
+    print(freehook)
+    print(cookie)
+    print(rbx)
+    
     if running:
         response = jsonify(["busy", groupscans])
         groupscans = 0
