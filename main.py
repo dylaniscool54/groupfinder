@@ -21,10 +21,102 @@ def swapapi():
         currentapi = 'roblox'
     wait(1000)
 
+def run(hook, lock, bl, key, auth, start, end, freehook, cookie, rbxhook, blacklistarray, urls_chunk, threadnum):
+    global running, groupscans
+    
+    for idx, robloxapiurl in enumerate(urls_chunk):
+        while True:
+            response = requests.get(f"https://groups.{currentapi}.com/v2/groups?groupIds={robloxapiurl}")
+            
+            if response.status_code == 429:
+                swapapi()
+                continue
+            
+            responsedata = response.json()['data']
+            print(f"{threadnum}, v2: {idx} / {len(urls_chunk)}")
+            
+            for idx2, robloxgroupinfo in enumerate(responsedata):
+                robloxID = robloxgroupinfo['id']
+                groupscans += 1
+
+                if not robloxgroupinfo.get('owner'):
+                    while True:
+                        if requests.head(f"https://cdn.glitch.global/{key}/{robloxID}").status_code == 403:
+                            v1request = requests.get(f"https://groups.{currentapi}.com/v1/groups/{robloxID}")
+                            
+                            if v1request.status_code == 429:
+                                swapapi()
+                                continue
+                            
+                            v1requestdata = v1request.json()
+                            print(f"{threadnum}, v1: {idx2} / {len(responsedata)}")
+                            
+                            if (not v1requestdata.get('owner') and v1requestdata['publicEntryAllowed'] and not v1requestdata.get('isLocked')):
+                                data = {}
+                                groupname = robloxgroupinfo['name']
+                                clouds = "Unknown"
+
+                                try:
+                                    rs = requests.get(f"https://economy.roblox.com/v1/groups/{robloxID}/currency", cookies={".ROBLOSECURITY": cookie})
+                                    clouds = rs.json()['robux']
+                                except:
+                                    pass
+
+                                touse = freehook
+
+                                if clouds == "Unknown":
+                                    touse = hook
+                                elif clouds > 0:
+                                    touse = rbxhook
+
+                                data["embeds"] = [{
+                                    "description": f"Robux: {clouds}\nMembers: {v1requestdata['memberCount']}\nhttps://www.roblox.com/groups/{robloxID}",
+                                    "title": f"{groupname} is unclaimed"
+                                }]
+
+                                data["content"] = "<@&1242748573632954459>"
+
+                                requests.post(touse, json=data)
+                            else:
+                                if v1requestdata.get('owner') is None:
+                                    response = requests.get(f"https://api.glitch.com/v1/projects/{key}/policy?contentType=lol", headers={"Authorization": auth, "Origin": "https://glitch.com"})
+                                    authed = response.json()
+
+                                    data = {
+                                            'key': f"{key}/{robloxID}",
+                                            'Content-Type': "lol",
+                                            'Cache-Control': 'max-age=31536000',
+                                            'AWSAccessKeyId': authed['accessKeyId'],
+                                            'acl': 'public-read',
+                                            'policy': authed['policy'],
+                                            'signature': authed['signature'],
+                                    }
+
+                                    files = {
+                                            'file': (str(robloxID), "locked".encode('utf-8')),
+                                    }
+
+                                    s3response = requests.post("https://s3.amazonaws.com/production-assetsbucket-8ljvyr1xczmb", data=data, files=files)
+
+                                    data = {}
+                                    groupname = robloxgroupinfo['name']
+
+                                    data["embeds"] = [{
+                                        "description": f"Members: {v1requestdata['memberCount']}\nhttps://www.roblox.com/groups/{robloxID}",
+                                        "title": f"{groupname} is unclaimed but locked!"
+                                    }]
+
+                                    requests.post("https://discord.com/api/webhooks/" + lock, json=data)
+                        break
+            time.sleep(1)  # prevent rate limits
+            break
+    print(f"{threadnum}, is done!")
+            
 def main(hook, lock, bl, key, auth, start, end, freehook, cookie, rbxhook):
     global running, groupscans
     blacklistArray = [item.strip() for item in bl.split(',')]
-
+    
+    
     allrequesturls = []
     amountin = 0
     a = ""
@@ -44,93 +136,23 @@ def main(hook, lock, bl, key, auth, start, end, freehook, cookie, rbxhook):
 
     if amountin > 0:
         allrequesturls.append(a)
-
-    for idx, robloxapiurl in enumerate(allrequesturls):
-        while True:
-            response = requests.get(f"https://groups.{currentapi}.com/v2/groups?groupIds={robloxapiurl}")
-            if response.status_code == 429:
-                swapapi()
-                continue
-            responsedata = response.json()['data']
-            print(f"v2: {idx} / {len(allrequesturls)}")
-
-            for idx2, robloxgroupinfo in enumerate(responsedata):
-                robloxID = robloxgroupinfo['id']
-                groupscans += 1
-
-                if not robloxgroupinfo.get('owner'):
-                    while True:
-                        if requests.head(f"https://cdn.glitch.global/{key}/{robloxID}").status_code == 403:
-                            v1request = requests.get(f"https://groups.{currentapi}.com/v1/groups/{robloxID}")
-                            if v1request.status_code == 429:
-                                swapapi()
-                                continue
-                            v1requestdata = v1request.json()
-                            print(f"v1: {idx2} / {len(responsedata)}")
-
-                            if (not v1requestdata.get('owner') and v1requestdata['publicEntryAllowed'] and not v1requestdata.get('isLocked')):
-                                data = {}
-                                groupname = robloxgroupinfo['name']
-                                clouds = "Unknown"
-
-                                try:
-                                    rs = requests.get(f"https://economy.roblox.com/v1/groups/{robloxID}/currency", cookies={".ROBLOSECURITY": cookie})
-                                    clouds = rs.json()['robux']
-                                except:
-                                    pass
-
-                                touse = freehook
-                                
-                                if clouds == "Unknown":
-                                    touse = hook
-                                elif clouds > 0:
-                                    touse = rbxhook
-                                   
-                                data["embeds"] = [{
-                                    "description": f"Robux: {clouds}\nMembers: {v1requestdata['memberCount']}\nhttps://www.roblox.com/groups/{robloxID}",
-                                    "title": f"{groupname} is unclaimed"
-                                }]
-
-                                data["content"] = "<@&1242748573632954459>"
-
-                                requests.post(touse, json=data)
-                            else:
-                                if v1requestdata.get('owner') is None:
-                                    response = requests.get(f"https://api.glitch.com/v1/projects/{key}/policy?contentType=lol", headers={"Authorization": auth, "Origin": "https://glitch.com"})
-                                    authed = response.json()
-
-
-                                    data = {
-                                            'key': f"{key}/{robloxID}",
-                                            'Content-Type': "lol",
-                                            'Cache-Control': 'max-age=31536000',
-                                            'AWSAccessKeyId': authed['accessKeyId'],
-                                            'acl': 'public-read',
-                                            'policy': authed['policy'],
-                                            'signature': authed['signature'],
-                                    }
-                                    
-                                    files = {
-                                            'file': (str(robloxID), "locked".encode('utf-8')),
-                                    }
-
-                                    
-                                    s3response = requests.post("https://s3.amazonaws.com/production-assetsbucket-8ljvyr1xczmb", data=data, files=files)
-                                    
-                                    data = {}
-                                    groupname = robloxgroupinfo['name']
-
-                                    data["embeds"] = [{
-                                        "description": f"Members: {v1requestdata['memberCount']}\nhttps://www.roblox.com/groups/{robloxID}",
-                                        "title": f"{groupname} is unclaimed but locked!"
-                                    }]
-
-                                    requests.post("https://discord.com/api/webhooks/" + lock, json=data)
-                        break
-            print("LETS GO")
-            wait(1000)  # prevent rate limits
-            break
-
+    
+    num_threads = 10
+    chunk_size = len(allrequesturls) // num_threads
+    threads = []
+    for i in range(num_threads):
+        start_index = i * chunk_size
+        end_index = start_index + chunk_size if i < num_threads - 1 else len(allrequesturls)
+        urls_chunk = allrequesturls[start_index:end_index]
+        thread = threading.Thread(target=run, args=(hook, lock, bl, key, auth, start, end, freehook, cookie, rbxhook, blacklistArray, urls_chunk, i))
+        threads.append(thread)
+        thread.start()
+        
+        
+    for thread in threads:
+      thread.join()
+      
+      
     print("DONE")
     running = False
 
