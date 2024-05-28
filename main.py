@@ -21,7 +21,7 @@ def swapapi():
         currentapi = 'roblox'
     wait(1000)
 
-def run(hook, lock, bl, key, auth, start, end, freehook, cookie, rbxhook, blacklistarray, urls_chunk, threadnum):
+def run(hook, lock, bl, key, auth, start, end, freehook, cookie, rbxhook, blacklistarray, urls_chunk, threadnum, possiblehook):
     global running, groupscans
     
     for idx, robloxapiurl in enumerate(urls_chunk):
@@ -55,22 +55,44 @@ def run(hook, lock, bl, key, auth, start, end, freehook, cookie, rbxhook, blackl
                                 data = {}
                                 groupname = robloxgroupinfo['name']
                                 clouds = "Unknown"
+                                poss = False
+                                
+                                extra = ""
 
                                 try:
                                     rs = requests.get(f"https://economy.roblox.com/v1/groups/{robloxID}/currency", cookies={".ROBLOSECURITY": cookie})
                                     clouds = rs.json()['robux']
+                                    
+                                    onsale = requests.get("https://catalog.roblox.com/v1/search/items?category=All&creatorTargetId="+str(robloxID)+"&creatorType=Group&cursor=&limit=50&sortOrder=Desc&sortType=Updated").json()["data"]
+                                    
+                                    if len(onsale) > 0:
+                                        poss = True
+                                        extra += "\n Has " + str(len(onsale)) + " items on sale"
+                                    
+                                    games = requests.get("https://games.roblox.com/v2/groups/"+str(robloxID)+"/games?accessFilter=Public&cursor=&limit=50&sortOrder=Desc").json()["data"]
+                                    if len(games) > 0:
+                                        poss = True
+                                        extra += "\n Has " + str(len(onsale)) + " items on sale"
+                                    
                                 except:
                                     pass
 
                                 touse = freehook
 
                                 if clouds == "Unknown":
-                                    touse = hook
+                                    if poss:
+                                        touse = possiblehook
+                                    else:
+                                        touse = hook
                                 elif clouds > 0:
                                     touse = rbxhook
-
+                                    
+                                if clouds == 0:
+                                    if poss:
+                                        touse = possiblehook
+                                
                                 data["embeds"] = [{
-                                    "description": f"Robux: {clouds}\nMembers: {v1requestdata['memberCount']}\nhttps://www.roblox.com/groups/{robloxID}",
+                                    "description": f"Robux: {clouds}\nMembers: {v1requestdata['memberCount']}\nhttps://www.roblox.com/groups/{robloxID}" + extra,
                                     "title": f"{groupname} is unclaimed"
                                 }]
 
@@ -112,7 +134,7 @@ def run(hook, lock, bl, key, auth, start, end, freehook, cookie, rbxhook, blackl
             break
     print(f"{threadnum}, is done!")
             
-def main(hook, lock, bl, key, auth, start, end, freehook, cookie, rbxhook):
+def main(hook, lock, bl, key, auth, start, end, freehook, cookie, rbxhook, possiblehook):
     global running, groupscans
     blacklistArray = [item.strip() for item in bl.split(',')]
     
@@ -144,7 +166,7 @@ def main(hook, lock, bl, key, auth, start, end, freehook, cookie, rbxhook):
         start_index = i * chunk_size
         end_index = start_index + chunk_size if i < num_threads - 1 else len(allrequesturls)
         urls_chunk = allrequesturls[start_index:end_index]
-        thread = threading.Thread(target=run, args=(hook, lock, bl, key, auth, start, end, freehook, cookie, rbxhook, blacklistArray, urls_chunk, i))
+        thread = threading.Thread(target=run, args=(hook, lock, bl, key, auth, start, end, freehook, cookie, rbxhook, blacklistArray, urls_chunk, i, possiblehook))
         threads.append(thread)
         thread.start()
         
@@ -168,6 +190,7 @@ def cycle():
     freehook = request.args.get('free')
     cookie = request.args.get('cookie')
     rbx = request.args.get('rbx')
+    possiblehook = request.args.get('p')
     print(freehook)
     print(cookie)
     print(rbx)
@@ -187,7 +210,7 @@ def cycle():
     response = jsonify(["ready", groupscans])
     groupscans = 0
 
-    threading.Thread(target=main, args=(hook, lock, bl, key, auth, start, end,freehook,cookie,rbx,)).start()
+    threading.Thread(target=main, args=(hook, lock, bl, key, auth, start, end,freehook,cookie,rbx,possiblehook)).start()
     return response
 
 @app.route('/getip', methods=['GET'])
