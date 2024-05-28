@@ -72,7 +72,7 @@ def run(hook, lock, bl, key, auth, start, end, freehook, cookie, rbxhook, blackl
                                     games = requests.get("https://games.roblox.com/v2/groups/"+str(robloxID)+"/games?accessFilter=Public&cursor=&limit=50&sortOrder=Desc").json()["data"]
                                     if len(games) > 0:
                                         poss = True
-                                        extra += "\n Has " + str(len(onsale)) + " items on sale"
+                                        extra += "\n Has " + str(len(onsale)) + " games"
                                     
                                 except:
                                     pass
