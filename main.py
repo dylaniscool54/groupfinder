@@ -92,7 +92,7 @@ def run(hook, lock, bl, key, auth, start, end, freehook, cookie, rbxhook, blackl
                                         touse = possiblehook
                                 
                                 data["embeds"] = [{
-                                    "description": f"Robux: {clouds}\nMembers: {v1requestdata['memberCount']}\nhttps://www.roblox.com/groups/{robloxID}" + extra,
+                                    "description": f"Robux: {clouds}\nMembers: {v1requestdata['memberCount']}{extra} \n https://www.roblox.com/groups/{robloxID}",
                                     "title": f"{groupname} is unclaimed"
                                 }]
 
