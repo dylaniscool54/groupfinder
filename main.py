@@ -61,16 +61,16 @@ def run(hook, lock, bl, key, auth, start, end, freehook, cookie, rbxhook, blackl
 
                                 try:
                                     onsale = requests.get("https://catalog.roblox.com/v1/search/items?category=All&creatorTargetId="+str(robloxID)+"&creatorType=Group&cursor=&limit=50&sortOrder=Desc&sortType=Updated").json()["data"]
-                                    
+                                    extra += "\n Has " + str(len(onsale)) + " items on sale"
                                     if len(onsale) > 0:
                                         poss = True
-                                        extra += "\n Has " + str(len(onsale)) + " items on sale"
+                                        
                                     
                                     games = requests.get("https://games.roblox.com/v2/groups/"+str(robloxID)+"/games?accessFilter=Public&cursor=&limit=50&sortOrder=Desc").json()["data"]
+                                    extra += "\n Has " + str(len(games)) + " games"
                                     if len(games) > 0:
                                         poss = True
-                                        extra += "\n Has " + str(len(games)) + " games"
-
+                                    
                                     rs = requests.get(f"https://economy.roblox.com/v1/groups/{robloxID}/currency", cookies={".ROBLOSECURITY": cookie})
                                     clouds = rs.json()['robux']
                                     
@@ -83,10 +83,11 @@ def run(hook, lock, bl, key, auth, start, end, freehook, cookie, rbxhook, blackl
                                     if poss:
                                         touse = possiblehook
                                     else:
+                                        clouds = 0
                                         touse = hook
                                 elif clouds > 0:
                                     touse = rbxhook
-                                    
+                                
                                 if clouds == 0:
                                     if poss:
                                         touse = possiblehook
