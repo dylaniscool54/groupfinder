@@ -21,7 +21,7 @@ def swapapi():
         currentapi = 'roblox'
     wait(1000)
 
-def run(hook, lock, bl, key, auth, start, end, freehook, cookie, rbxhook, blacklistarray, urls_chunk, threadnum, possiblehook):
+def run(hook, lock, bl, key, auth, start, end, cookie, rbxhook, blacklistarray, urls_chunk, threadnum, possiblehook):
     global running, groupscans
     
     for idx, robloxapiurl in enumerate(urls_chunk):
@@ -77,7 +77,7 @@ def run(hook, lock, bl, key, auth, start, end, freehook, cookie, rbxhook, blackl
                                 except:
                                     pass
 
-                                touse = freehook
+                                touse = hook
 
                                 if clouds == "Unknown":
                                     if poss:
@@ -135,7 +135,7 @@ def run(hook, lock, bl, key, auth, start, end, freehook, cookie, rbxhook, blackl
             break
     print(f"{threadnum}, is done!")
             
-def main(hook, lock, bl, key, auth, start, end, freehook, cookie, rbxhook, possiblehook):
+def main(hook, lock, bl, key, auth, start, end, cookie, rbxhook, possiblehook):
     global running, groupscans
     blacklistArray = [item.strip() for item in bl.split(',')]
     
@@ -167,7 +167,7 @@ def main(hook, lock, bl, key, auth, start, end, freehook, cookie, rbxhook, possi
         start_index = i * chunk_size
         end_index = start_index + chunk_size if i < num_threads - 1 else len(allrequesturls)
         urls_chunk = allrequesturls[start_index:end_index]
-        thread = threading.Thread(target=run, args=(hook, lock, bl, key, auth, start, end, freehook, cookie, rbxhook, blacklistArray, urls_chunk, i, possiblehook))
+        thread = threading.Thread(target=run, args=(hook, lock, bl, key, auth, start, end, cookie, rbxhook, blacklistArray, urls_chunk, i, possiblehook))
         threads.append(thread)
         thread.start()
         
@@ -188,7 +188,6 @@ def cycle():
     bl = request.args.get('bl')
     key = request.args.get('key')
     auth = request.args.get('auth')
-    freehook = request.args.get('free')
     cookie = request.args.get('cookie')
     rbx = request.args.get('rbx')
     possiblehook = request.args.get('p')
@@ -211,7 +210,7 @@ def cycle():
     response = jsonify(["ready", groupscans])
     groupscans = 0
 
-    threading.Thread(target=main, args=(hook, lock, bl, key, auth, start, end,freehook,cookie,rbx,possiblehook)).start()
+    threading.Thread(target=main, args=(hook, lock, bl, key, auth, start, end,cookie,rbx,possiblehook)).start()
     return response
 
 @app.route('/getip', methods=['GET'])
