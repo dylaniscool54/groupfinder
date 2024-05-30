@@ -191,7 +191,6 @@ def cycle():
     cookie = request.args.get('cookie')
     rbx = request.args.get('rbx')
     possiblehook = request.args.get('p')
-    print(freehook)
     print(cookie)
     print(rbx)
     
